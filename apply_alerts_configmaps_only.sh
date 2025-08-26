@@ -1,16 +1,11 @@
-#!/bin/bash
-
-# Quick script to apply alert ConfigMaps to Kubernetes clusters
-# Assumes git has been reverted and DTs have been rebuilt already
 
 set -e
 
-ATT_ROOT="${ATT_ROOT:-/Users/wyatt.meng/Desktop/all-the-things}"
+ATT_ROOT="${ATT_ROOT:-/Desktop/all-the-things}"
 REGION="ca-central-1"
 ENVIRONMENT="prod-live"
 CLUSTERS=("bravo" "main" "jobs")
 
-# List of all 75 DTs
 DTS=(
     "address" "agent-portal-api" "airflow-att" "alm" "amplify" "anchor" "axp" 
     "balances" "business-identity" "capital-data-sourcing" "car" "card-processor" 
@@ -27,9 +22,6 @@ DTS=(
     "shop-api" "sre" "superapp" "tank" "trainyard2" "treasury2" "ucp" "usercomms" 
     "webhooks"
 )
-
-echo "Applying alert ConfigMaps to ca-central-1-prod-live clusters"
-echo "============================================"
 
 for cluster in "${CLUSTERS[@]}"; do
     full_cluster="${REGION}-${ENVIRONMENT}-${cluster}"
@@ -53,6 +45,3 @@ for cluster in "${CLUSTERS[@]}"; do
     echo "Applied $applied ConfigMaps to $full_cluster"
     echo ""
 done
-
-echo "All alert ConfigMaps have been applied!"
-echo "Recovery complete." 
