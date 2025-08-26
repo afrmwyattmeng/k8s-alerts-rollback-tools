@@ -30,14 +30,10 @@ DTS=(
     "webhooks"
 )
 
-echo "============================================"
-echo "Alert ConfigMap Rollback Script"
-echo "============================================"
 echo "ATT_ROOT: $ATT_ROOT"
 echo "Region: $REGION"
 echo "Environment: $ENVIRONMENT"
 echo "DRY_RUN: $DRY_RUN"
-echo ""
 
 echo "Step 1: Verifying cluster.yaml files have alerts: true..."
 for cluster in "${CLUSTERS[@]}"; do
@@ -79,9 +75,6 @@ if [ -n "$failed_builds" ]; then
     echo "Failed builds: $failed_builds"
 fi
 echo ""
-
-# Step 3: Apply alert ConfigMaps to Kubernetes clusters
-echo "Step 3: Applying alert ConfigMaps to Kubernetes clusters..."
 
 total_applied=0
 failed_applies=""
@@ -129,10 +122,6 @@ for cluster in "${CLUSTERS[@]}"; do
     done
 done
 
-echo ""
-echo "============================================"
-echo "Rollback Summary:"
-echo "============================================"
 echo "DTs rebuilt: $rebuild_count/${#DTS[@]}"
 echo "ConfigMaps applied: $total_applied"
 
