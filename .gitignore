@@ -1,0 +1,20 @@
+# Build logs
+/tmp/
+*.log
+
+# Mac system files
+.DS_Store
+
+# Editor files
+*.swp
+*~
+.idea/
+.vscode/
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary build outputs
+build_*.log
+rollback_build_*.log 

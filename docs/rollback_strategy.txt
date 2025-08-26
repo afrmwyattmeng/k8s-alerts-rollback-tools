@@ -1,0 +1,85 @@
+Rollback Strategy for Alert ConfigMap Removal
+==============================================
+
+Understanding the Change:
+-------------------------
+The change disabled alert ConfigMaps for ca-central-1-prod-live clusters by:
+1. Setting alerts: false in 3 cluster.yaml files
+2. This prevents alert ConfigMap generation during builds
+3. Orphaned ConfigMap files (162 total) were deleted from git tracking
+
+Why Step 3 (Script) is Needed:
+-------------------------------
+The critical insight is that ConfigMaps exist in two places:
+1. Build files in the repository (generated during make k8s_build_all_no_git)
+2. Actual Kubernetes clusters (applied via kubectl)
+
+When we disabled alerts and rebuilt, the ConfigMaps:
+- Were no longer generated in build directories
+- Were removed from git tracking
+- Still exist in the actual Kubernetes clusters (but are orphaned)
+
+During rollback, after reverting the git commit and rebuilding:
+- ConfigMap files are regenerated in build directories
+- But they are NOT automatically applied to clusters
+- Manual intervention is needed to apply them to clusters
+
+The Rollback Process:
+---------------------
+1. Revert the git commit:
+   git revert <commit-sha>
+   This restores alerts: true in cluster.yaml files
+
+2. Rebuild all 75 DTs:
+   for dt in <dt-list>; do
+     cd deployable/$dt
+     make k8s_build_all_no_git
+   done
+   This regenerates the alert ConfigMap YAML files
+
+3. Apply ConfigMaps to clusters (THE CRITICAL STEP):
+   for cluster in bravo main jobs; do
+     scc --cluster prod-live-$cluster --region ca-central-1
+     for dt in <dt-list>; do
+       kubectl apply -f deployable/$dt/kubernetes/build/ca-central-1-prod-live-$cluster/~g_v1_configmap_alerts-$dt.yaml -n $dt
+     done
+   done
+
+Two Scripts Provided:
+---------------------
+1. /tmp/rollback_alerts_configmaps.sh
+   - Complete rollback script (all 3 steps)
+   - Verifies git revert was done
+   - Rebuilds all 75 DTs
+   - Applies ConfigMaps to clusters
+   - Includes dry-run mode for safety
+   - Usage: DRY_RUN=false ./rollback_alerts_configmaps.sh
+
+2. /tmp/apply_alerts_configmaps_only.sh
+   - Quick script for step 3 only
+   - Assumes git revert and rebuild already done
+   - Just applies ConfigMaps to clusters
+   - Faster for emergency recovery
+   - Usage: ./apply_alerts_configmaps_only.sh
+
+Recovery Time Estimate:
+-----------------------
+- Git revert: 30 seconds
+- Rebuild all DTs: 10-15 minutes
+- Apply ConfigMaps: 3-5 minutes per cluster
+- Total recovery time: ~20-25 minutes
+
+Verification After Rollback:
+----------------------------
+kubectl get configmap -A | grep alerts- | wc -l
+Should show ~162 ConfigMaps restored across all namespaces
+
+kubectl get configmap -n address alerts-address -o yaml
+Should show the alert rules configuration
+
+Key Points:
+-----------
+- The rollback is safe because alert ConfigMaps were unused (orphaned)
+- No service disruption during rollback
+- Monitoring continues via Chronosphere throughout
+- ConfigMaps can be selectively restored if needed (per DT or cluster) 
