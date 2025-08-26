@@ -15,17 +15,12 @@ These scripts were created to support the deprecation of legacy alert ConfigMaps
    - Verifies configuration changes
    - Rebuilds all affected deployables
    - Applies ConfigMaps to clusters
-   - Includes dry-run mode for safety
 
 2. **apply_alerts_configmaps_only.sh**
    - Quick recovery script
    - Assumes git revert and rebuild are complete
    - Only handles ConfigMap application to clusters
    - Faster for emergency recovery
-
-### Documentation
-
-- **docs/rollback_strategy.txt** - Detailed explanation of the rollback process and why each step is necessary
 
 ## Usage
 
@@ -55,19 +50,6 @@ The scripts target:
 - Clusters: bravo, main, jobs
 - 75 deployables with alert components
 
-## Recovery Time
-
-- Git revert: ~30 seconds
-- Rebuild all deployables: 10-15 minutes
-- Apply ConfigMaps: 3-5 minutes per cluster
-- **Total recovery time: ~20-25 minutes**
-
-## Prerequisites
-
-- Access to the all-the-things repository
-- kubectl configured with appropriate cluster access
-- scc tool for cluster context switching (or modify scripts to use kubectl config directly)
-- Appropriate permissions to apply ConfigMaps to namespaces
 
 ## Affected Deployables
 
@@ -94,11 +76,3 @@ kubectl get configmap -n address alerts-address -o yaml
 - Primary monitoring continues through Chronosphere
 - No service disruption during rollback
 - ConfigMaps can be selectively restored if needed
-
-## License
-
-Internal use only
-
-## Support
-
-For questions or issues, contact the Kubernetes platform team. 
